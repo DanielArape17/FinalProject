@@ -4,72 +4,79 @@ import mongoosePaginate from "mongoose-paginate-v2";
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Respuestas de IA (AiResponse)
- * ---------------------------------------
- * Almacena el resultado final entregado por el modelo de IA. Contiene tanto
- * el texto plano como la estructura JSON parseada necesaria para construir
- * las rutas y tarjetas. Además, registra métricas de consumo (tokens) y
- * costos financieros para el control administrativo.
- * Integra: Almacenamiento estructurado, métricas de tokens y costos.
- * Autor: Daniel Arapé
+ * @description AI Response Schema and Model (AiResponse)
+ * @summary Stores the final output delivered by the AI model. It contains both 
+ * raw plain text and the parsed JSON structure required to build routes and cards. 
+ * Additionally, it records consumption metrics (tokens) and financial costs 
+ * for administrative and analytical control.
+ * Includes: Structured storage, token usage metrics, and cost tracking.
+ * @prop {ObjectId} aiRequestId - Reference to the original request that generated this response.
+ * @prop {string} responseText - Raw response in plain text format.
+ * @prop {Mixed} structured - Parsed JSON object (e.g., card titles, lessons, or custom objects).
+ * @prop {number} tokensIn - Input tokens count (prompt size).
+ * @prop {number} tokensOut - Output tokens count (completion size).
+ * @prop {number} costUsd - Calculated cost in USD based on the provider's billing rates.
+ * @prop {Mixed} providerMeta - Complete raw response from the provider for technical auditing.
+ * @prop {boolean} cached - Indicates if this result was served from cache.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const aiResponseSchema = new mongoose.Schema(
   {
-    // --- Vínculo con la Petición ---
+    // --- Request Linkage ---
     aiRequestId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "AiRequest",
       required: true,
       unique: true,
       index: true,
-      description:
-        "Referencia a la pregunta original que generó esta respuesta",
+      description: "Link to the original prompt that triggered this response",
     },
 
-    // --- Contenido Generado ---
+    // --- Generated Content ---
     responseText: {
       type: String,
-      description: "Respuesta cruda en texto plano",
+      description: "Raw completion text from the LLM",
     },
     structured: {
-      type: Schema.Types.Mixed,
-      description:
-        "JSON parseado (ej: el objeto con títulos de tarjetas y lecciones)",
+      type: mongoose.Schema.Types.Mixed,
+      description: "Parsed JSON data for frontend or logic consumption",
     },
 
-    // --- Métricas de Consumo y Costo ---
+    // --- Consumption and Cost Metrics ---
     tokensIn: {
       type: Number,
       default: 0,
-      description: "Tokens de entrada (el tamaño del prompt)",
+      description: "Input tokens (prompt volume)",
     },
     tokensOut: {
       type: Number,
       default: 0,
-      description: "Tokens de salida (el tamaño de la respuesta)",
+      description: "Output tokens (response volume)",
     },
     costUsd: {
       type: Number,
       default: 0,
-      description: "Costo calculado en USD según la tarifa del proveedor",
+      description: "Estimated cost in USD based on provider pricing",
     },
 
-    // --- Metadatos Técnicos ---
+    // --- Technical Metadata ---
     providerMeta: {
-      type: Schema.Types.Mixed,
-      description:
-        "Respuesta completa y cruda del proveedor para auditoría técnica",
+      type: mongoose.Schema.Types.Mixed,
+      description: "Full raw provider response for forensic or technical audit",
     },
     cached: {
       type: Boolean,
       default: false,
-      description: "Indica si este resultado se sirvió desde el caché",
+      description: "Flag indicating if the response was served from a cache layer",
     },
 
-    // --- Control de Borrado Lógico ---
+    // --- Logical Deletion Control ---
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   {
     timestamps: true,

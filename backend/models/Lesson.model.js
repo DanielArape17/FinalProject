@@ -1,89 +1,113 @@
-import mongoose from 'mongoose';
-import mongoosePaginate from 'mongoose-paginate-v2';
+import mongoose from "mongoose";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Lección (Lesson)
- * --------------------------
- * Almacena el contenido educativo detallado vinculado a una tarjeta.
- * Organiza la información en secciones, integra recursos multimedia,
- * ejercicios interactivos y flashcards para el estudio activo. 
- * Integra: Contenido estructurado, soporte multimedia y métricas de IA.
- * Autor: Daniel Arapé
+ * @description Educational Lesson Schema and Model (Lesson)
+ * @summary Stores detailed educational content linked to a specific card.
+ * Organizes information into sections, integrates multimedia resources,
+ * interactive exercises, and flashcards for active study.
+ * Includes: Structured content, multimedia support, and AI usage metrics.
+ * @prop {ObjectId} cardId - Reference to the card this content belongs to.
+ * @prop {string} title - The display name of the lesson.
+ * @prop {string} level - Pedagogical difficulty: 'beginner', 'intermediate', or 'advanced'.
+ * @prop {string} lessonPlan - Instructional structure (e.g., 'summary+flashcards+quiz').
+ * @prop {Array} sections - Main body components including text, media, and exercises.
+ * @prop {Array} flashcards - Concept-answer pairs for active recall study.
+ * @prop {Array} resources - General downloadable materials and global media.
+ * @prop {Object} aiUsageCost - Tracking for input/output tokens and financial cost in USD.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
-const lessonSchema = new mongoose.Schema({
-    // --- Vínculo Estructural ---
-    cardId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Card', 
-        required: true,
-        index: true,
-        description: "Tarjeta a la que pertenece este contenido"
+const lessonSchema = new mongoose.Schema(
+  {
+    // --- Structural Link ---
+    cardId: {
+      type: Schema.Types.ObjectId,
+      ref: "Card",
+      required: true,
+      index: true,
+      description: "Parent card associated with this lesson",
     },
-    title: { 
-        type: String, 
-        trim: true 
-    },
-
-    // --- Configuración Pedagógica ---
-    level: { 
-        type: String, 
-        enum: ['principiante', 'intermedio', 'avanzado'], 
-        default: 'intermedio' 
-    },
-    lessonPlan: { 
-        type: String, 
-        trim: true,
-        description: "Estructura instruccional y secuencia lógica de la lección (ej: 'summary+flashcards+quiz')" 
+    title: {
+      type: String,
+      trim: true,
     },
 
-    // --- Cuerpo de la Lección ---
-    sections: [{
+    // --- Pedagogical Configuration ---
+    level: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+      default: "intermediate",
+    },
+    lessonPlan: {
+      type: String,
+      trim: true,
+      description:
+        "Instructional sequence logic (e.g. 'summary+flashcards+quiz')",
+    },
+
+    // --- Lesson Body ---
+    sections: [
+      {
         title: { type: String, trim: true },
-        body: { 
-            type: String, 
-            description: "Contenido principal en formato Markdown o HTML" 
+        body: {
+          type: String,
+          description: "Main content in Markdown or HTML format",
         },
-        resources: [{ 
-            type: Schema.Types.ObjectId, 
-            ref: 'Media',
-            description: "Imágenes, PDFs o archivos específicos de esta sección"
-        }],
-        exercises: [{ 
-            type: Schema.Types.ObjectId, 
-            ref: 'Exercise',
-            description: "Preguntas o retos prácticos vinculados a esta sección"
-        }]
-    }],
+        resources: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: "Media",
+            description: "Section-specific images, PDFs, or files",
+          },
+        ],
+        exercises: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: "Exercise",
+            description:
+              "Practical challenges or questions linked to this section",
+          },
+        ],
+      },
+    ],
 
-    // --- Herramientas de Estudio Activo ---
-    flashcards: [{
-        q: { type: String, trim: true, description: "Pregunta o concepto" },
-        a: { type: String, trim: true, description: "Respuesta o definición" }
-    }],
+    // --- Active Study Tools ---
+    flashcards: [
+      {
+        q: { type: String, trim: true, description: "Question or concept" },
+        a: { type: String, trim: true, description: "Answer or definition" },
+      },
+    ],
 
-    // --- Recursos Globales y Auditoría ---
-    resources: [{ 
-        type: Schema.Types.ObjectId, 
-        ref: 'Media',
-        description: "Material descargable general de la lección"
-    }],
+    // --- Global Resources and Audit ---
+    resources: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Media",
+        description: "General downloadable materials for the lesson",
+      },
+    ],
     aiUsageCost: {
-        inputTokens: { type: Number, default: 0 },
-        outputTokens: { type: Number, default: 0 },
-        costUsd: { type: Number, default: 0 }
+      inputTokens: { type: Number, default: 0 },
+      outputTokens: { type: Number, default: 0 },
+      costUsd: { type: Number, default: 0 },
     },
 
-    // --- Control de Borrado Lógico ---
-    deleted: { type: Boolean, default: false },    
+    // --- Logical Deletion Control ---
+    deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
+    deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-}, { 
-    timestamps: true 
-});
-
-const Lesson = mongoose.model('Lesson', lessonSchema);
+const Lesson = mongoose.model("Lesson", lessonSchema);
 
 export default Lesson;

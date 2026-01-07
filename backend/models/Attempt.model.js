@@ -4,76 +4,87 @@ import mongoosePaginate from "mongoose-paginate-v2";
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Intentos (Attempt)
- * ----------------------------
- * Registra cada ejecución de un ejercicio por parte de un usuario.
- * Almacena la respuesta enviada, la calificación obtenida y el tiempo
- * empleado. Incluye un snapshot del plan del usuario y los costos de
- * evaluación si fue procesado por IA.
- * Integra: Trazabilidad de respuestas, métricas de desempeño y auditoría.
- * Autor: Daniel Arapé
+ * @description User Attempt Schema and Model (Attempt)
+ * @summary Records every execution of an exercise by a user.
+ * Stores the submitted response, the grade obtained, and the time elapsed. 
+ * Includes a snapshot of the user's subscription plan and evaluation costs 
+ * if processed by AI.
+ * Includes: Response traceability, performance metrics, and audit logs.
+ * * @prop {ObjectId} userId - Reference to the user performing the attempt.
+ * @prop {ObjectId} exerciseId - Reference to the specific exercise being solved.
+ * @prop {ObjectId} lessonId - Optional reference to the associated lesson.
+ * @prop {ObjectId} cardId - Optional reference to the associated card.
+ * @prop {Mixed} response - User-submitted data (text, selected option, etc.).
+ * @prop {boolean} isCorrect - Validation flag indicating if the answer was correct.
+ * @prop {number} score - Achieved score on a scale from 0.0 to 1.0.
+ * @prop {number} timeTakenSec - Duration in seconds spent on the attempt.
+ * @prop {Object} planSnapshot - State of the user's plan (tier) at the moment of the attempt.
+ * @prop {Object} aiEvaluation - Metrics related to AI-driven grading (request ID, tokens, cost).
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who triggered the deletion.
+ * * @author Daniel Arapé
  */
 const attemptSchema = new mongoose.Schema(
   {
-    // --- Identificación del Usuario y Contexto ---
+    // --- User Identification and Context ---
     userId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
     exerciseId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Exercise",
       required: true,
       index: true,
     },
-    lessonId: { type: Schema.Types.ObjectId, ref: "Lesson" },
-    cardId: { type: Schema.Types.ObjectId, ref: "Card" },
+    lessonId: { type: mongoose.Schema.Types.ObjectId, ref: "Lesson" },
+    cardId: { type: mongoose.Schema.Types.ObjectId, ref: "Card" },
 
-    // --- Resultados del Intento ---
+    // --- Attempt Results ---
     response: {
-      type: Schema.Types.Mixed,
-      description: "Respuesta enviada por el usuario (texto, opción, etc.)",
+      type: mongoose.Schema.Types.Mixed,
+      description: "User-submitted answer (text, option, etc.)",
     },
     isCorrect: {
       type: Boolean,
-      description: "¿La respuesta fue validada como correcta?",
+      description: "Whether the response was validated as correct",
     },
     score: {
       type: Number,
       default: 0,
       min: 0,
       max: 1,
-      description: "Puntaje obtenido (escala 0.0 a 1.0)",
+      description: "Grade achieved (scale 0.0 to 1.0)",
     },
     timeTakenSec: {
       type: Number,
-      description: "Segundos que tardó el usuario en responder",
+      description: "Seconds the user spent responding",
     },
 
-    // --- Snapshot de Auditoría ---
+    // --- Audit Snapshot ---
     planSnapshot: {
       tier: {
         type: String,
-        description:
-          "Nivel del plan (free, plus, premium) al momento del intento",
+        description: "Plan level (free, plus, premium) at the time of the attempt",
       },
       at: { type: Date, default: Date.now },
     },
 
-    // --- Evaluación por IA (Opcional) ---
+    // --- AI Evaluation (Optional) ---
     aiEvaluation: {
-      aiRequestId: { type: Schema.Types.ObjectId, ref: "AiRequest" },
+      aiRequestId: { type: mongoose.Schema.Types.ObjectId, ref: "AiRequest" },
       tokensIn: { type: Number, default: 0 },
       tokensOut: { type: Number, default: 0 },
       costUsd: { type: Number, default: 0 },
     },
 
-    // --- Control de Borrado Lógico ---
+    // --- Logical Deletion Control ---
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   {
     timestamps: true,

@@ -1,50 +1,58 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-PlanSchema.plugin(mongoosePaginate);
+planSchema.plugin(mongoosePaginate);
 
 /**
- * Modelo de Plan (Suscripciones)
- * ---------------------------------
- * Define los diferentes niveles de servicio disponibles en la plataforma
- * (Free, Plus, Premium, Pro, B2B). Almacena los costos comerciales y,
- * lo más importante, los límites técnicos de la IA para cada nivel,
- * permitiendo un control estricto del consumo de recursos por usuario.
- * Integra: Gestión de precios, lista de beneficios y cuotas de uso (Rate Limiting).
- * Basado en: Estándares de monetización y borrado lógico.
- * Autor: Daniel Arapé
+ * @description Plan Schema and Model (Subscriptions)
+ * @summary Defines the different service levels available on the platform 
+ * (Free, Plus, Premium, Pro, B2B). It stores commercial costs and, 
+ * most importantly, the technical AI limits for each tier, allowing 
+ * strict control over resource consumption per user.
+ * Includes: Pricing management, benefit lists, and usage quotas (Rate Limiting).
+ * Based on: Monetization standards and logical deletion.
+ * @prop {string} name - Unique subscription tier name: 'free', 'plus', 'premium', 'pro', 'b2b'.
+ * @prop {string} description - Detailed explanation of the plan.
+ * @prop {Object} pricing - Monthly and annual costs in USD.
+ * @prop {string[]} benefits - Array of features included to be displayed on the frontend.
+ * @prop {Object} limits - Technical AI and usage quotas (max routes, cards, tokens, etc.).
+ * @prop {boolean} isActive - Flag to enable or disable the plan globally.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const planSchema = new mongoose.Schema(
   {
-    // --- Identificación del Plan ---
+    // --- Plan Identification ---
     name: {
       type: String,
       required: true,
       unique: true,
       trim: true,
       enum: ["free", "plus", "premium", "pro", "b2b"],
-      description: "Nombre único del nivel de suscripción",
+      description: "Unique name of the subscription tier",
     },
     description: {
       type: String,
       trim: true,
     },
 
-    // --- Estructura de Precios ---
+    // --- Pricing Structure ---
     pricing: {
       monthlyUsd: { type: Number, default: 0, min: 0 },
       annualUsd: { type: Number, default: 0, min: 0 },
     },
 
-    // --- Características y Marketing ---
+    // --- Features and Marketing ---
     benefits: {
       type: [String],
       default: [],
       description:
-        "Lista de funcionalidades incluidas para mostrar en el frontend",
+        "List of features included to be displayed on the frontend",
     },
 
-    // --- Límites Técnicos y de IA ---
+    // --- Technical and AI Limits ---
     limits: {
       maxActiveRoutes: { type: Number, default: 1 },
       freeCardsPerRoute: { type: Number, default: 2 },
@@ -56,7 +64,7 @@ const planSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
 
-    // --- Estado y Auditoría ---
+    // --- State and Audit ---
     deleted: {
       type: Boolean,
       default: false,

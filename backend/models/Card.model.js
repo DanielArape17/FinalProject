@@ -4,22 +4,36 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Tarjeta Educativa (Card)
- * ----------------------------------
- * Representa un hito o paso específico dentro de una ruta de aprendizaje.
- * Gestiona el orden de los contenidos, los prerrequisitos de acceso basados
- * en puntajes previos, y vincula la tarjeta con su contenido real (lecciones).
- * Integra: Lógica de prerrequisitos, metadatos de dificultad y costos de IA.
- * Autor: Daniel Arapé
+ * @description Educational Card Schema and Model (Card)
+ * @summary Represents a specific milestone or step within a learning path (Route).
+ * Manages content sequencing, access prerequisites based on previous scores, 
+ * and links the card to its actual instructional content (lessons).
+ * Includes: Prerequisite logic, difficulty metadata, and AI-related costs.
+ * * @prop {ObjectId} routeId - Reference to the learning path this card belongs to.
+ * @prop {string} title - The display name of the card.
+ * @prop {number} order - Sequential position of the card within its route.
+ * @prop {string} type - Card classification: 'lesson', 'checkpoint', 'exercise_bundle', or 'info'.
+ * @prop {ObjectId} contentRef.lessonId - Pointer to the detailed instructional content or exercises.
+ * @prop {Array} prerequisites - List of cards and required scores (0.0 - 1.0) to unlock this card.
+ * @prop {string} summary - Brief overview of the card's purpose.
+ * @prop {number} metadata.durationMin - Estimated time in minutes to complete the card.
+ * @prop {string} metadata.difficulty - Complexity level: 'low', 'medium', or 'high'.
+ * @prop {Object} aiUsageCost - Tracking for input/output tokens and financial cost in USD.
+ * @prop {number} ratingAvg - Average user rating for this card.
+ * @prop {number} ratingCount - Total number of ratings received.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * * @author Daniel Arapé
  */
 const cardSchema = new mongoose.Schema({
-    // --- Estructura de la Ruta ---
+    // --- Route Structure ---
     routeId: { 
-        type: Schema.Types.ObjectId, 
+        type: mongoose.Schema.Types.ObjectId, 
         ref: 'Route', 
         required: true,
         index: true,
-        description: "Ruta a la que pertenece esta tarjeta"
+        description: "The Route ID associated with this card"
     },
     title: { 
         type: String, 
@@ -29,7 +43,7 @@ const cardSchema = new mongoose.Schema({
     order: { 
         type: Number, 
         default: 0,
-        description: "Posición secuencial dentro de la ruta" 
+        description: "Sequential index for sorting within a route" 
     },
     type: { 
         type: String, 
@@ -37,28 +51,28 @@ const cardSchema = new mongoose.Schema({
         default: 'lesson' 
     },
 
-    // --- Referencias de Contenido ---
+    // --- Content References ---
     contentRef: {
         lessonId: { 
-            type: Schema.Types.ObjectId, 
+            type: mongoose.Schema.Types.ObjectId, 
             ref: 'Lesson',
-            description: "Puntero al contenido detallado (lección o ejercicios)"
+            description: "Pointer to the specific lesson or content document"
         }
     },
 
-    // --- Lógica de Aprendizaje (Gamificación) ---
+    // --- Learning Logic (Gamification) ---
     prerequisites: [{
-        cardId: { type: Schema.Types.ObjectId, ref: 'Card' },
+        cardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Card' },
         requiredScore: { 
             type: Number, 
             default: 0, 
             min: 0, 
             max: 1,
-            description: "Puntaje necesario (0.0 a 1.0) para desbloquear esta tarjeta" 
+            description: "Minimum score (0.0 to 1.0) required to unlock this card" 
         }
     }],
 
-    // --- Información y Metadatos ---
+    // --- Information and Metadata ---
     summary: { 
         type: String, 
         trim: true 
@@ -67,12 +81,12 @@ const cardSchema = new mongoose.Schema({
         durationMin: { type: Number, default: 0 },
         difficulty: { 
             type: String, 
-            enum: ['bajo', 'medio', 'alto'],
-            default: 'medio'
+            enum: ['low', 'medium', 'high'],
+            default: 'medium'
         }
     },
 
-    // --- Auditoría de IA y Calidad ---
+    // --- AI Audit and Quality Control ---
     aiUsageCost: {
         inputTokens: { type: Number, default: 0 },
         outputTokens: { type: Number, default: 0 },
@@ -81,10 +95,10 @@ const cardSchema = new mongoose.Schema({
     ratingAvg: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
 
-    // --- Control de Borrado Lógico ---
+    // --- Logical Deletion Control ---
     deleted: { type: Boolean, default: false },    
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null }
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 
 }, { 
     timestamps: true 

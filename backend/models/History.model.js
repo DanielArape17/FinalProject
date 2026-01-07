@@ -1,26 +1,36 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-HistorySchema.plugin(mongoosePaginate);
+historySchema.plugin(mongoosePaginate);
 
 /**
- * Modelo de Historial (Audit Trail)
- * ---------------------------------
- * Registra de forma detallada cada operación realizada sobre los documentos
- * de la base de datos (rutas, tarjetas, etc.). Permite el control de versiones,
- * auditoría técnica y recuperación de datos mediante el almacenamiento de
- * deltas (diffs) y snapshots del antes y después.
- * Integra: Trazabilidad completa, snapshots de documentos y autoría de cambios.
- * Autor: Daniel Arapé
+ * @description History Schema and Model (Audit Trail)
+ * @summary Records detailed logs of every operation performed on database 
+ * documents (routes, cards, etc.). Enables version control, technical 
+ * auditing, and data recovery by storing deltas (diffs) and snapshots 
+ * of before and after states.
+ * Includes: Full traceability, document snapshots, and change authorship.
+ * @prop {string} collectionName - Name of the affected collection (e.g., 'routes', 'cards').
+ * @prop {ObjectId} documentId - Reference to the specific modified document.
+ * @prop {string} operation - Type of action: 'create', 'update', 'softDelete', etc.
+ * @prop {ObjectId} userId - User who performed the action. Null if system/AI-triggered.
+ * @prop {Mixed} diff - Object containing the changes (from -> to).
+ * @prop {Mixed} fullDocumentBefore - Complete copy of the document before the change.
+ * @prop {Mixed} fullDocumentAfter - Complete copy of the document after the change.
+ * @prop {string} reason - Justification for the modification.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const historySchema = new mongoose.Schema(
   {
-    // --- Referencia del Documento ---
+    // --- Document Reference ---
     collectionName: {
       type: String,
       required: true,
       trim: true,
-      description: "Nombre de la colección afectada (ej. 'routes', 'cards')",
+      description: "Name of the affected collection (e.g. 'routes', 'cards')",
     },
     documentId: {
       type: Schema.Types.ObjectId,
@@ -28,7 +38,7 @@ const historySchema = new mongoose.Schema(
       index: true,
     },
 
-    // --- Detalles de la Operación ---
+    // --- Operation Details ---
     operation: {
       type: String,
       required: true,
@@ -46,23 +56,23 @@ const historySchema = new mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       default: null,
-      description: "Usuario que realizó la acción. Null si fue el sistema/IA.",
+      description: "User who performed the action. Null if it was system/AI.",
     },
 
-    // --- Datos de Auditoría (Deltas y Snapshots) ---
+    // --- Audit Data (Deltas and Snapshots) ---
     diff: {
       type: Schema.Types.Mixed,
-      description: "Objeto con los cambios realizados (de -> hacia)",
+      description: "Object with the changes made (from -> to)",
     },
     fullDocumentBefore: {
       type: Schema.Types.Mixed,
       default: null,
-      description: "Copia completa del documento antes del cambio",
+      description: "Full copy of the document before the change",
     },
     fullDocumentAfter: {
       type: Schema.Types.Mixed,
       default: null,
-      description: "Copia completa del documento después del cambio",
+      description: "Full copy of the document after the change",
     },
 
     reason: {

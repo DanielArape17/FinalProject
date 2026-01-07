@@ -4,53 +4,60 @@ import mongoosePaginate from "mongoose-paginate-v2";
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Ledger de Tokens (Contabilidad de Moneda Virtual)
- * ---------------------------------------------------------
- * Registra cada movimiento (entrada o salida) de tokens en la plataforma.
- * Permite la trazabilidad financiera, auditoría de compras y recompensas,
- * y asegura que el saldo del usuario sea auditable en todo momento.
- * Integra: Registro de cambios (+/-), saldo histórico y motivos de transacción.
- * Autor: Daniel Arapé
+ * @description Tokens Ledger Schema and Model (Virtual Currency Accounting)
+ * @summary Records every movement (inflow or outflow) of tokens within the platform.
+ * Enables financial traceability, auditing of purchases and rewards, and 
+ * ensures that the user's balance is auditable at all times.
+ * Includes: Change log (+/-), historical balance, and transaction motives.
+ * @prop {ObjectId} userId - Reference to the user who owns the tokens.
+ * @prop {number} change - Amount of tokens added (+) or subtracted (-).
+ * @prop {number} balanceAfter - User's total balance immediately after this operation.
+ * @prop {string} reason - Legal or technical motive: 'purchase', 'ad_reward', 'unlock_card', etc.
+ * @prop {ObjectId} relatedId - ID of the related document (e.g., Purchase ID or Card ID).
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const tokensLedgerSchema = new mongoose.Schema(
   {
-    // --- Referencia del Propietario ---
+    // --- Owner Reference ---
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
-      description: "Usuario dueño de los tokens",
+      description: "User who owns the tokens",
     },
 
-    // --- Detalles de la Transacción ---
+    // --- Transaction Details ---
     change: {
       type: Number,
       required: true,
-      description: "Cantidad de tokens añadida (+) o restada (-)",
+      description: "Amount of tokens added (+) or subtracted (-)",
     },
     balanceAfter: {
       type: Number,
       required: true,
       description:
-        "Saldo total del usuario inmediatamente después de esta operación",
+        "User's total balance immediately after this operation",
     },
 
     reason: {
       type: String,
       required: true,
       enum: ["purchase", "ad_reward", "unlock_card", "admin_adj", "refund"],
-      description: "Motivo legal o técnico del movimiento",
+      description: "Legal or technical reason for the movement",
     },
 
     relatedId: {
       type: Schema.Types.ObjectId,
       default: null,
       description:
-        "ID del documento relacionado (ej: ID de la compra o ID de la tarjeta)",
+        "ID of the related document (e.g., Purchase ID or Card ID)",
     },
 
-    // --- Control de Borrado Lógico ---
+    // --- Logical Deletion Control ---
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
     deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },

@@ -4,54 +4,61 @@ import mongoosePaginate from "mongoose-paginate-v2";
 ReviewSchema.plugin(mongoosePaginate);
 
 /**
- * Modelo de Reseñas (Reviews y Calificaciones)
- * -------------------------------------------
- * Almacena las valoraciones numéricas y comentarios de los usuarios sobre
- * el contenido educativo. Es fundamental para el algoritmo de recomendación
- * y para identificar qué contenidos generados por la IA necesitan mejora.
- * Integra: Validación de rango (1-5), sistema de comentarios y auditoría.
- * Autor: Daniel Arapé
+ * @description Reviews and Ratings Schema and Model (Review)
+ * @summary Stores numerical ratings and user feedback regarding educational content. 
+ * This data is essential for the recommendation algorithm and for identifying 
+ * AI-generated content that requires improvement.
+ * Includes: Range validation (1-5), feedback system, and auditing.
+ * @prop {ObjectId} userId - Reference to the user rating the content.
+ * @prop {string} targetType - Type of the rated entity: 'route', 'card', or 'lesson'.
+ * @prop {ObjectId} targetId - Unique ID of the specific document (Route, Card, or Lesson).
+ * @prop {number} rating - Score from 1 to 5 stars.
+ * @prop {string} comment - Optional user feedback regarding their experience.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const ReviewSchema = new mongoose.Schema(
   {
-    // --- Autor de la Reseña ---
+    // --- Review Author ---
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
-      description: "Usuario que califica el contenido",
+      description: "User providing the rating",
     },
 
-    // --- Objetivo de la Calificación ---
+    // --- Rating Target ---
     targetType: {
       type: String,
       required: true,
       enum: ["route", "card", "lesson"],
-      description: "Tipo de entidad calificada",
+      description: "Type of the entity being rated",
     },
     targetId: {
       type: Schema.Types.ObjectId,
       required: true,
       index: true,
-      description: "ID del documento específico (Ruta, Tarjeta o Lección)",
+      description: "Specific document ID (Route, Card, or Lesson)",
     },
 
-    // --- Valoración ---
+    // --- Evaluation ---
     rating: {
       type: Number,
       required: true,
       min: 1,
       max: 5,
-      description: "Puntuación de 1 a 5 estrellas",
+      description: "Star rating from 1 to 5",
     },
     comment: {
       type: String,
       trim: true,
-      description: "Comentario opcional del usuario sobre su experiencia",
+      description: "Optional user feedback regarding their experience",
     },
 
-    // --- Control de Borrado Lógico ---
+    // --- Logical Deletion Control ---
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
     deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },

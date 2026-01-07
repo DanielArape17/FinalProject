@@ -4,52 +4,59 @@ import mongoosePaginate from "mongoose-paginate-v2";
 AdminLogSchema.plugin(mongoosePaginate);
 
 /**
- * Modelo de Registro de Auditoría Administrativa (AdminLog)
- * --------------------------------------------------------
- * Almacena las acciones críticas realizadas por administradores o moderadores.
- * Permite rastrear la actividad de gestión humana sobre usuarios, rutas
- * y configuraciones del sistema, asegurando la responsabilidad y el control.
- * Integra: Identificación del actor, descripción de la acción y contexto del cambio.
- * Autor: Daniel Arapé
+ * @description Administrative Audit Log Schema and Model
+ * @summary Stores critical actions performed by administrators or moderators.
+ * This model enables activity tracking regarding user management, system routes, 
+ * and configuration changes, ensuring accountability and forensic control.
+ * @prop {ObjectId} actorId - Reference to the administrator/moderator who performed the action.
+ * @prop {string} action - Action identifier (e.g., 'user.ban', 'tokens.refund', 'plan.update').
+ * @prop {string} targetType - Type of entity/resource affected by the operation.
+ * @prop {ObjectId} targetId - Unique identifier of the specific document affected.
+ * @prop {Mixed} details - Metadata containing contextual info (reasoning, previous/new values).
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp recording when the record was logically removed.
+ * @prop {ObjectId} deletedBy - Reference to the user who authorized the logical deletion.
+ * @timestamps createdAt and updatedAt generated automatically.
+ * @author Daniel Arapé (Standardized by Dev Team)
  */
 
 const adminLogSchema = new mongoose.Schema(
   {
-    // --- Actor de la Acción ---
+    // --- Action Actor ---
     actorId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
-      description: "Administrador o moderador que ejecutó la acción",
+      description: "Admin or moderator responsible for the entry",
     },
 
-    // --- Descripción de la Operación ---
+    // --- Operation Details ---
     action: {
       type: String,
       required: true,
       trim: true,
-      description: "Ej: 'user.ban', 'tokens.refund', 'plan.update'",
+      description: "Action namespace using dot notation for categorization",
     },
 
-    // --- Objetivo del Cambio ---
+    // --- Target Identification ---
     targetType: {
       type: String,
       required: true,
-      description: "Tipo de entidad que fue afectada",
+      description: "Resource entity name (e.g., 'User', 'Payment', 'Route')",
     },
     targetId: {
       type: Schema.Types.ObjectId,
       required: true,
       index: true,
-      description: "ID específico del documento afectado",
+      description: "Direct reference to the affected document ID",
     },
 
-    // --- Detalles Complementarios ---
+    // --- Contextual Metadata ---
     details: {
       type: Schema.Types.Mixed,
       description:
-        "Objeto con información adicional sobre la acción (ej. motivo, valores previos)",
+        "Payload containing the diff or justification for the change",
     },
 
     // --- Soft Delete ---

@@ -1,63 +1,71 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-ReportSchema.plugin(mongoosePaginate);
+reportSchema.plugin(mongoosePaginate);
 
 /**
- * Modelo de Reportes (Moderación y Feedback)
- * ------------------------------------------
- * Gestiona las denuncias o alertas creadas por los usuarios sobre diferentes
- * entidades del sistema (rutas, lecciones, usuarios). Proporciona un flujo
- * de trabajo para el equipo de moderación, permitiendo rastrear el estado
- * de cada reporte desde su creación hasta su resolución o rechazo.
- * Integra: Sistema de estados (workflow), referencias polimórficas y auditoría.
- * Autor: Daniel Arapé
+ * @description Reports Schema and Model (Moderation & Feedback)
+ * @summary Manages complaints or alerts created by users regarding different 
+ * system entities (routes, lessons, users). It provides a workflow for the 
+ * moderation team, allowing them to track the status of each report from 
+ * creation to resolution or rejection.
+ * Includes: Workflow status system, polymorphic references, and auditing.
+ * @prop {ObjectId} reporterId - Reference to the user issuing the complaint or alert.
+ * @prop {string} targetType - The type of content reported (route, card, lesson, exercise, user).
+ * @prop {ObjectId} targetId - Unique ID of the specific document being reported.
+ * @prop {string} reason - Primary motive (e.g., 'Inaccurate content', 'Spam', 'Technical error').
+ * @prop {string} details - Detailed explanation of the reported issue.
+ * @prop {string} status - Moderation lifecycle state: 'open', 'in_review', 'resolved', 'rejected'.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
 const reportSchema = new mongoose.Schema(
   {
-    // --- Autor del Reporte ---
+    // --- Report Author ---
     reporterId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
-      description: "Usuario que emite la queja o alerta",
+      description: "User who issues the complaint or alert",
     },
 
-    // --- Objetivo del Reporte ---
+    // --- Report Target ---
     targetType: {
       type: String,
       required: true,
       enum: ["route", "card", "lesson", "exercise", "user"],
-      description: "Tipo de contenido reportado",
+      description: "Type of content reported",
     },
     targetId: {
       type: Schema.Types.ObjectId,
       required: true,
       index: true,
-      description: "ID del documento específico que está siendo reportado",
+      description: "ID of the specific document being reported",
     },
 
-    // --- Contenido del Reporte ---
+    // --- Report Content ---
     reason: {
       type: String,
       required: true,
       trim: true,
       description:
-        "Motivo principal (ej: 'Contenido inexacto', 'Spam', 'Error técnico')",
+        "Primary motive (e.g. 'Inaccurate content', 'Spam', 'Technical error')",
     },
     details: {
       type: String,
       trim: true,
-      description: "Explicación extendida del problema",
+      description: "Extended explanation of the problem",
     },
 
-    // --- Flujo de Resolución ---
+    // --- Resolution Workflow ---
     status: {
       type: String,
       enum: ["open", "in_review", "resolved", "rejected"],
       default: "open",
-      description: "Estado actual del proceso de moderación",
+      description: "Current state of the moderation process",
     },
 
     // --- Soft Delete ---

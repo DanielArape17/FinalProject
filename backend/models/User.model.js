@@ -4,18 +4,28 @@ import mongoosePaginate from "mongoose-paginate-v2";
 mongoose.plugin(mongoosePaginate);
 
 /**
- * Modelo de Usuario - Proyecto Final
- * ---------------------------------
- * Representa la entidad central del sistema. Gestiona la autenticación,
- * niveles académicos para la IA, saldos de tokens y preferencias de
- * personalización. Incluye seguridad avanzada (MFA y bloqueo de cuenta),
- * rastreo de progreso en rutas y soporte para borrado lógico.
- * Integra: Seguridad, Planes de Suscripción, Preferencias de IA y Progreso.
- * Autor: Daniel Arapé
+ * @description User Schema and Model - Core Identity
+ * @summary Represents the central entity of the system. Manages authentication, 
+ * academic levels for AI personalization, token balances, and user preferences. 
+ * Includes advanced security (MFA and account locking), route progress tracking, 
+ * and soft delete support.
+ * Includes: Security, Subscription Plans, AI Preferences, and Progress Tracking.
+ * @prop {string} email - Unique primary identifier. Validated for standard email format.
+ * @prop {string} authProvider - Identity provider: 'local', 'google', 'facebook', or 'apple'.
+ * @prop {string} passwordHash - Encrypted password (excluded from default queries).
+ * @prop {string} academicLevel - Education tier for AI context: 'primary', 'secondary', etc.
+ * @prop {string} role - Access level: 'user', 'moderator', 'revisor', 'admin', 'superadmin'.
+ * @prop {Object} plan - Subscription tier details and expiration.
+ * @prop {number} tokensBalance - Current virtual currency balance.
+ * @prop {Object} preferences - Notification, UI, and AI personalization settings.
+ * @prop {Object} progress - Tracks completion percentage of educational routes.
+ * @prop {Object} security - Metadata for MFA, failed logins, and account locking.
+ * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
+ * @author Daniel Arapé
  */
 const userSchema = new mongoose.Schema(
   {
-    // --- Datos de Identidad ---
+    // --- Identity Data ---
     email: {
       type: String,
       required: true,
@@ -25,7 +35,7 @@ const userSchema = new mongoose.Schema(
       index: true,
       validate: {
         validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-        message: "El formato del correo es inválido.",
+        message: "Invalid email format.",
       },
     },
     authProvider: {
@@ -40,32 +50,32 @@ const userSchema = new mongoose.Schema(
       default: [],
       validate: {
         validator: (arr) => arr.length <= 3,
-        message: "No se pueden reutilizar las últimas 3 contraseñas.",
+        message: "You cannot reuse the last 3 passwords.",
       },
     },
 
-		// -- Porfile --
+    // -- Profile --
     name: {
       type: String,
       trim: true,
       validate: {
         validator: (v) => /^[A-Za-záéíóúÁÉÍÓÚñÑ' ]+$/.test(v),
-        message: "El nombre solo puede contener letras.",
+        message: "Name can only contain letters.",
       },
     },
     country: { type: String },
-    language: { type: String, default: "es" },
+    language: { type: String, default: "en" },
     academicLevel: {
       type: String,
       enum: [
-        "primaria",
-        "secundaria",
-        "bachillerato",
-        "grado",
-        "postgrado",
-        "otros",
+        "primary",
+        "secondary",
+        "high_school",
+        "undergraduate",
+        "postgraduate",
+        "others",
       ],
-      default: "otros",
+      default: "others",
     },
     role: {
       type: String,
@@ -73,7 +83,7 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
 
-    // --- Monetización y Tokens ---
+    // --- Monetization and Tokens ---
     plan: {
       tier: {
         type: String,
@@ -85,7 +95,7 @@ const userSchema = new mongoose.Schema(
     },
     tokensBalance: { type: Number, default: 0, min: 0 },
 
-    // --- Personalización y Preferencias ---
+    // --- Personalization and Preferences ---
     preferences: {
       notifications: {
         progress: { type: Boolean, default: true },
@@ -107,7 +117,7 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // --- Tracking de Progreso ---
+    // --- Progress Tracking ---
     progress: {
       routes: [
         {
@@ -118,7 +128,7 @@ const userSchema = new mongoose.Schema(
       ],
     },
 
-    // --- Seguridad y Auditoría ---
+    // --- Security and Audit ---
     security: {
       mfaEnabled: { type: Boolean, default: false },
       lastLoginAt: { type: Date },
@@ -126,7 +136,7 @@ const userSchema = new mongoose.Schema(
       lockedUntil: { type: Date },
     },
 
-    // --- Control Administrativo y Borrado Lógico ---
+    // --- Administrative Control and Soft Delete ---
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
