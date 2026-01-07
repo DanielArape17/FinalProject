@@ -1,26 +1,25 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-AdminLogSchema.plugin(mongoosePaginate);
+mongoose.plugin(mongoosePaginate);
 
 /**
- * @description Administrative Audit Log Schema and Model
+ * @description Administrative Audit Log Schema and Model (AdminLog)
  * @summary Stores critical actions performed by administrators or moderators.
- * This model enables activity tracking regarding user management, system routes, 
- * and configuration changes, ensuring accountability and forensic control.
- * @prop {ObjectId} actorId - Reference to the administrator/moderator who performed the action.
- * @prop {string} action - Action identifier (e.g., 'user.ban', 'tokens.refund', 'plan.update').
- * @prop {string} targetType - Type of entity/resource affected by the operation.
- * @prop {ObjectId} targetId - Unique identifier of the specific document affected.
- * @prop {Mixed} details - Metadata containing contextual info (reasoning, previous/new values).
+ * Allows tracking of human management activities over users, routes, and
+ * system configurations, ensuring accountability and control.
+ * Includes: Actor identification, action description, and change context.
+ * @prop {ObjectId} actorId - Reference to the administrator or moderator who executed the action.
+ * @prop {string} action - Operation identifier (e.g., 'user.ban', 'tokens.refund', 'plan.update').
+ * @prop {string} targetType - The type of entity that was affected by the action.
+ * @prop {ObjectId} targetId - Specific ID of the document that was modified.
+ * @prop {Mixed} details - Object containing additional information (e.g., reason, previous values).
  * @prop {boolean} deleted - Logical deletion flag (Soft Delete).
- * @prop {Date} deletedAt - Timestamp recording when the record was logically removed.
- * @prop {ObjectId} deletedBy - Reference to the user who authorized the logical deletion.
- * @timestamps createdAt and updatedAt generated automatically.
- * @author Daniel Arapé (Standardized by Dev Team)
+ * @prop {Date} deletedAt - Timestamp of logical deletion.
+ * @prop {ObjectId} deletedBy - Reference to the user who performed the deletion.
+ * @author Daniel Arapé
  */
-
-const adminLogSchema = new mongoose.Schema(
+const AdminLogSchema = new Schema(
   {
     // --- Action Actor ---
     actorId: {
@@ -28,35 +27,35 @@ const adminLogSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       index: true,
-      description: "Admin or moderator responsible for the entry",
+      description: "Administrator or moderator who executed the action",
     },
 
-    // --- Operation Details ---
+    // --- Operation Description ---
     action: {
       type: String,
       required: true,
       trim: true,
-      description: "Action namespace using dot notation for categorization",
+      description: "e.g., 'user.ban', 'tokens.refund', 'plan.update'",
     },
 
-    // --- Target Identification ---
+    // --- Change Target ---
     targetType: {
       type: String,
       required: true,
-      description: "Resource entity name (e.g., 'User', 'Payment', 'Route')",
+      description: "Type of entity that was affected",
     },
     targetId: {
       type: Schema.Types.ObjectId,
       required: true,
       index: true,
-      description: "Direct reference to the affected document ID",
+      description: "Specific ID of the affected document",
     },
 
-    // --- Contextual Metadata ---
+    // --- Complementary Details ---
     details: {
       type: Schema.Types.Mixed,
       description:
-        "Payload containing the diff or justification for the change",
+        "Object with additional info about the action (e.g. reason, previous values)",
     },
 
     // --- Soft Delete ---
@@ -69,6 +68,6 @@ const adminLogSchema = new mongoose.Schema(
   }
 );
 
-const AdminLog = mongoose.model("AdminLog", adminLogSchema);
+const AdminLog = mongoose.model("AdminLog", AdminLogSchema);
 
 export default AdminLog;
