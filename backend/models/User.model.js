@@ -121,7 +121,7 @@ const userSchema = new mongoose.Schema(
     progress: {
       routes: [
         {
-          routeId: { type: Schema.Types.ObjectId, ref: "Route" },
+          routeId: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
           percent: { type: Number, default: 0, min: 0, max: 100 },
           lastVisitedAt: { type: Date },
         },
@@ -137,10 +137,10 @@ const userSchema = new mongoose.Schema(
     },
 
     // --- Administrative Control and Soft Delete ---
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   {
     timestamps: true,
